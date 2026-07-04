@@ -1,0 +1,12 @@
+# 機密
+.env.secret
+
+# 環境
+.venv/
+
+# Python 快取
+__pycache__/
+*.pyc
+
+# 作業系統垃圾
+.DS_Store
