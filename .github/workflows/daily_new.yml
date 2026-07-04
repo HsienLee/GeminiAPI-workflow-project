@@ -1,0 +1,37 @@
+name: Daily News Analysis
+
+on:
+  schedule:
+    - cron: "0 0 * * *"      # UTC 00:00 = 台灣早上 8:00
+  workflow_dispatch:          # 加這個才能手動觸發，測試必備
+
+permissions:
+  contents: write             # 允許 workflow 把報告 push 回 repo
+
+jobs:
+  run-analysis:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. 把你的程式碼抓到這台雲端機器上
+      - uses: actions/checkout@v4
+
+      # 2. 安裝 Python
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      # 3. 重建環境（requirements.txt 在此發揮作用）
+      - run: pip install -r requirements.txt
+
+      # 4. 跑你的流水線，金鑰從 Secrets 注入成環境變數
+      - run: python main.py
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+      # 5. 把產出的報告 commit 回 repo
+      - run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add news.csv analysis_report.md analysis_report.html
+          git commit -m "🤖 每日自動更新報告 $(date +'%Y-%m-%d')" || echo "沒有變更，跳過"
+          git push
