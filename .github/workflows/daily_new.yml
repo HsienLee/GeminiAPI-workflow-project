@@ -8,6 +8,9 @@ on:
 permissions:
   contents: write             # 允許 workflow 把報告 push 回 repo
 
+env:
+  TZ: Asia/Taipei
+
 jobs:
   run-analysis:
     runs-on: ubuntu-latest
