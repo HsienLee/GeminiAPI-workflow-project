@@ -2,6 +2,8 @@ import os
 import pandas as pd
 from google import genai
 from dotenv import load_dotenv
+import time
+from google.genai import errors
 
 # # 1. 讀取金鑰
 # load_dotenv(".env.secret")
@@ -76,10 +78,18 @@ def analyze(df_file = "news.csv", md_file = "analysis_report.md"):
     請直接輸出分析，不要回應我或加開場白。"""
 
     # 5. 呼叫 Gemini
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=prompt,
-    )
+    for attempt in range(3):
+        try:
+            response = client.models.generate_content(
+                model="gemini-2.5-flash",
+                contents=prompt,
+            )
+            break                              # 成功就跳出迴圈
+        except errors.ServerError as e:
+            print(f"⚠️ 第 {attempt+1} 次失敗（{e}），60 秒後重試...")
+            if attempt == 2:                   # 三次都失敗才真的放棄
+                raise
+            time.sleep(60)
 
     # 6. 存成 Markdown
     with open(md_file, "w", encoding="utf-8") as f:
